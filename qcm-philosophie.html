@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اختبار QCM - من الأسطورة إلى الفلسفة</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    background: linear-gradient(135deg, #1e3a5f, #2c6e8f);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: #fff;
+    width: 100%;
+    max-width: 640px;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  }
+  h1 { font-size: 1.4rem; color: #1e3a5f; margin: 0 0 6px; text-align: center; }
+  .subtitle { text-align: center; color: #666; margin: 0 0 20px; font-size: 0.95rem; }
+  .progress-wrap { background: #e6eef5; border-radius: 10px; height: 10px; overflow: hidden; margin-bottom: 8px; }
+  .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #2c6e8f, #f0a500); transition: width 0.3s; }
+  .counter { font-size: 0.85rem; color: #666; margin-bottom: 18px; text-align: center; }
+  .question { font-size: 1.15rem; font-weight: bold; color: #222; margin-bottom: 16px; line-height: 1.7; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    border: 2px solid #d0dde8;
+    border-radius: 10px;
+    padding: 12px 16px;
+    cursor: pointer;
+    background: #f8fbfd;
+    font-size: 1rem;
+    text-align: right;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .option:hover:not(:disabled) { border-color: #2c6e8f; background: #eef6fb; }
+  .option:disabled { cursor: default; }
+  .option.correct { border-color: #2e9e5b; background: #e3f7ea; color: #1b6b3a; font-weight: bold; }
+  .option.wrong { border-color: #d64545; background: #fde8e8; color: #9b2222; }
+  .feedback { margin-top: 16px; padding: 12px; border-radius: 10px; min-height: 24px; font-weight: bold; text-align: center; }
+  .feedback.good { background: #e3f7ea; color: #1b6b3a; }
+  .feedback.bad { background: #fde8e8; color: #9b2222; }
+  .actions { display: flex; justify-content: space-between; margin-top: 20px; gap: 10px; }
+  button.main {
+    background: #2c6e8f; color: #fff; border: none; border-radius: 10px;
+    padding: 10px 22px; font-size: 1rem; cursor: pointer; font-family: inherit;
+  }
+  button.main:disabled { background: #aab; cursor: not-allowed; }
+  button.main:hover:not(:disabled) { background: #1e3a5f; }
+  .result { text-align: center; }
+  .result .score { font-size: 3rem; color: #1e3a5f; font-weight: bold; margin: 10px 0; }
+  .result p { font-size: 1.1rem; color: #333; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>📝 اختبار QCM</h1>
+  <p class="subtitle">من الأسطورة إلى الفلسفة</p>
+
+  <div class="progress-wrap"><div class="progress-bar" id="bar"></div></div>
+  <div class="counter" id="counter"></div>
+
+  <div id="quiz">
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions">
+      <span></span>
+      <button class="main" id="nextBtn" disabled>التالي ◀</button>
+    </div>
+  </div>
+
+  <div id="result" class="result" style="display:none;">
+    <div>🏆 انتهى الاختبار!</div>
+    <div class="score" id="finalScore"></div>
+    <p id="message"></p>
+    <button class="main" id="restartBtn">إعادة الاختبار 🔄</button>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    {
+      q: "1. ما المقصود بالأسطورة (Mythos)؟",
+      options: [
+        "خطاب يعتمد على البرهان العقلي",
+        "حكاية تعتمد على السرد والخيال",
+        "نظام سياسي ديمقراطي"
+      ],
+      answer: 1
+    },
+    {
+      q: "2. ما معنى كلمة \"ديمقراطية\" حرفيًا؟",
+      options: ["حكم الأقلية", "حكم الفرد المطلق", "حكم الشعب"],
+      answer: 2
+    },
+    {
+      q: "3. ما الخاصية الأساسية للفلسفة (Logos)؟",
+      options: ["الاعتماد على الحكايات", "الاعتماد على الحجة والبرهان", "الاعتماد على الوحي"],
+      answer: 1
+    },
+    {
+      q: "4. ما هي \"المدينة-الدولة\" (Polis)؟",
+      options: [
+        "مدينة دينية تحكمها الكهنة",
+        "نظام سياسي تُتخذ فيه القرارات بالنقاش العلني",
+        "قصر ملكي تحكمه الآلهة"
+      ],
+      answer: 1
+    },
+    {
+      q: "5. أين كان المواطنون اليونانيون يتناقشون في الشأن العام؟",
+      options: ["في المعبد فقط", "في الأغورا", "في السوق المغلق"],
+      answer: 1
+    },
+    {
+      q: "6. أي عامل كان ضروريًا لنشأة الفلسفة حسب النص؟",
+      options: [
+        "الحكم المطلق",
+        "الجو السياسي الذي يسمح بالنقاش العلني",
+        "انتشار الأساطير"
+      ],
+      answer: 1
+    },
+    {
+      q: "7. ما الفرق الأساسي بين الأسطورة والفلسفة؟",
+      options: [
+        "الأسطورة تعتمد على الحجة، والفلسفة على الخيال",
+        "الأسطورة تعتمد على السرد، والفلسفة على الحجة والبرهان",
+        "لا فرق بينهما"
+      ],
+      answer: 1
+    },
+    {
+      q: "8. ما الذي وفرته الكتابة للفكر الفلسفي؟",
+      options: [
+        "تدوين الأفكار ونقدها ونشرها",
+        "إلغاء النقاش",
+        "تحويل الأساطير إلى أغانٍ"
+      ],
+      answer: 0
+    }
+  ];
+
+  let current = 0;
+  let score = 0;
+  let answered = false;
+
+  const el = {
+    q: document.getElementById("question"),
+    opts: document.getElementById("options"),
+    fb: document.getElementById("feedback"),
+    next: document.getElementById("nextBtn"),
+    bar: document.getElementById("bar"),
+    counter: document.getElementById("counter"),
+    quiz: document.getElementById("quiz"),
+    result: document.getElementById("result"),
+    finalScore: document.getElementById("finalScore"),
+    message: document.getElementById("message"),
+    restart: document.getElementById("restartBtn")
+  };
+
+  const letters = ["أ", "ب", "ج", "د"];
+
+  function render() {
+    answered = false;
+    const item = questions[current];
+    el.q.textContent = item.q;
+    el.opts.innerHTML = "";
+    el.fb.textContent = "";
+    el.fb.className = "feedback";
+    el.next.disabled = true;
+    el.next.textContent = current === questions.length - 1 ? "إنهاء ✔" : "التالي ◀";
+    el.bar.style.width = (current / questions.length * 100) + "%";
+    el.counter.textContent = `السؤال ${current + 1} من ${questions.length}`;
+
+    item.options.forEach((text, i) => {
+      const btn = document.createElement("button");
+      btn.className = "option";
+      btn.textContent = `${letters[i]}) ${text}`;
+      btn.addEventListener("click", () => choose(i));
+      el.opts.appendChild(btn);
+    });
+  }
+
+  function choose(i) {
+    if (answered) return;
+    answered = true;
+    const item = questions[current];
+    const buttons = el.opts.querySelectorAll(".option");
+    buttons.forEach(b => b.disabled = true);
+
+    buttons[item.answer].classList.add("correct");
+    if (i === item.answer) {
+      score++;
+      el.fb.textContent = "✅ إجابة صحيحة! أحسنت";
+      el.fb.classList.add("good");
+    } else {
+      buttons[i].classList.add("wrong");
+      el.fb.textContent = `❌ خطأ! الجواب الصحيح: ${letters[item.answer]}) ${item.options[item.answer]}`;
+      el.fb.classList.add("bad");
+    }
+    el.next.disabled = false;
+  }
+
+  el.next.addEventListener("click", () => {
+    current++;
+    if (current < questions.length) {
+      render();
+    } else {
+      showResult();
+    }
+  });
+
+  function showResult() {
+    el.quiz.style.display = "none";
+    el.result.style.display = "block";
+    el.bar.style.width = "100%";
+    el.finalScore.textContent = `${score} / ${questions.length}`;
+    const ratio = score / questions.length;
+    el.message.textContent =
+      ratio === 1 ? "ممتاز! أنت خبير في الفلسفة اليونانية 🏛️" :
+      ratio >= 0.5 ? "عمل جيد! راجع الأسئلة التي أخطأت فيها 📚" :
+      "لا بأس، أعد الدرس وحاول مرة أخرى 💪";
+  }
+
+  el.restart.addEventListener("click", () => {
+    current = 0;
+    score = 0;
+    el.quiz.style.display = "block";
+    el.result.style.display = "none";
+    render();
+  });
+
+  render();
+</script>
+</body>
+</html>
